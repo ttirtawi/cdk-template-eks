@@ -1,6 +1,9 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as eks from 'aws-cdk-lib/aws-eks';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import { Ec2Action } from 'aws-cdk-lib/aws-cloudwatch-actions';
+import { Cluster } from 'aws-cdk-lib/aws-ecs';
 
 export class CdkTemplateEksStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -8,9 +11,152 @@ export class CdkTemplateEksStack extends Stack {
 
     // The code that defines your stack goes here
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkTemplateEksQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const eksCluster = new eks.Cluster(this, 'eksCluster', {
+      version: eks.KubernetesVersion.V1_21,
+      clusterName: 'cgkdemo',
+      albController: {
+        version: eks.AlbControllerVersion.V2_3_0
+      }
+    });
+
+    eksCluster.addNodegroupCapacity('nodegroup-arm', {
+      instanceTypes: [new ec2.InstanceType('t4g.large')],
+      minSize: 1,
+      maxSize: 4,
+      diskSize: 100,
+      amiType: eks.NodegroupAmiType.AL2_ARM_64,
+      nodegroupName: 'nodegroup-arm'
+    });
+
+    eksCluster.addManifest('namespace', {
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "metadata": {
+          "name": "kambing"
+      }  
+    });
+
+    eksCluster.addManifest('deployment', {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+          "name": "app1-deployment",
+          "namespace": "kambing",
+          "labels": {
+              "app": "app1"
+          }
+      },
+      "spec": {
+          "replicas": 10,
+          "selector": {
+              "matchLabels": {
+                  "app": "app1"
+              }
+          },
+          "template": {
+              "metadata": {
+                  "labels": {
+                      "app": "app1"
+                  }
+              },
+              "spec": {
+                  "containers": [
+                      {
+                          "name": "testapp1",
+                          "image": "tedytirta/testcgk",
+                          "imagePullPolicy": "Always",
+                          "ports": [
+                              {
+                                  "containerPort": 8080
+                              }
+                          ]
+                      }
+                  ],
+                  "nodeSelector": {
+                      "kubernetes.io/arch": "amd64"
+                  }
+              }
+          }
+      }  
+    });
+
+    eksCluster.addManifest('service', {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+          "name": "app1-service",
+          "namespace": "kambing",
+          "labels": {
+              "app": "app1"
+          }
+      },
+      "spec": {
+          "selector": {
+              "app": "app1"
+          },
+          "type": "NodePort",
+          "ports": [
+              {
+                  "name": "http",
+                  "protocol": "TCP",
+                  "port": 80,
+                  "targetPort": 8080
+              }
+          ]
+      }  
+    });
+
+    eksCluster.addManifest('ingress', {
+      "apiVersion": "networking.k8s.io/v1",
+      "kind": "Ingress",
+      "metadata": {
+          "name": "kambing-app1-ingress",
+          "namespace": "kambing",
+          "annotations": {
+              "kubernetes.io/ingress.class": "alb",
+              "alb.ingress.kubernetes.io/scheme": "internet-facing",
+              "alb.ingress.kubernetes.io/listen-ports": "[{\"HTTP\":80}]"
+          }
+      },
+      "spec": {
+          "rules": [
+              {
+                  "http": {
+                      "paths": [
+                          {
+                              "path": "/app1",
+                              "pathType": "Prefix",
+                              "backend": {
+                                  "service": {
+                                      "name": "app1-service",
+                                      "port": {
+                                          "number": 80
+                                      }
+                                  }
+                              }
+                          },
+                          {
+                              "path": "/",
+                              "pathType": "Exact",
+                              "backend": {
+                                  "service": {
+                                      "name": "app1-service",
+                                      "port": {
+                                          "number": 80
+                                      }
+                                  }
+                              }
+                          }
+                      ]
+                  }
+              }
+          ]
+      }  
+    });
+
+    new CfnOutput(this, 'clusterName', {value: eksCluster.clusterName});
+    new CfnOutput(this, 'vpcId', {value: eksCluster.vpc.vpcId});
+    new CfnOutput(this, 'vpcCidr', {value: eksCluster.vpc.vpcCidrBlock});
+
   }
 }
