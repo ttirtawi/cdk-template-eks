@@ -1,0 +1,47 @@
+{
+    "apiVersion": "networking.k8s.io/v1",
+    "kind": "Ingress",
+    "metadata": {
+        "name": "kambing-app1-ingress",
+        "namespace": "kambing",
+        "annotations": {
+            "kubernetes.io/ingress.class": "alb",
+            "alb.ingress.kubernetes.io/scheme": "internet-facing",
+            "alb.ingress.kubernetes.io/listen-ports": "[{\"HTTP\":80}]"
+        }
+    },
+    "spec": {
+        "rules": [
+            {
+                "http": {
+                    "paths": [
+                        {
+                            "path": "/app1",
+                            "pathType": "Prefix",
+                            "backend": {
+                                "service": {
+                                    "name": "app1-service",
+                                    "port": {
+                                        "number": 80
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "path": "/",
+                            "pathType": "Exact",
+                            "backend": {
+                                "service": {
+                                    "name": "app1-service",
+                                    "port": {
+                                        "number": 80
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

@@ -4,6 +4,7 @@ import * as eks from 'aws-cdk-lib/aws-eks';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Ec2Action } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Cluster } from 'aws-cdk-lib/aws-ecs';
+import { DefaultCapacityType } from 'aws-cdk-lib/aws-eks';
 
 export class CdkTemplateEksStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -14,11 +15,21 @@ export class CdkTemplateEksStack extends Stack {
     const eksCluster = new eks.Cluster(this, 'eksCluster', {
       version: eks.KubernetesVersion.V1_21,
       clusterName: 'cgkdemo',
+      defaultCapacity: 0,
       albController: {
         version: eks.AlbControllerVersion.V2_3_0
       }
     });
 
+    // add X86 node group
+    eksCluster.addNodegroupCapacity('nodegroup-x86', {
+      instanceTypes: [new ec2.InstanceType('t3.medium')],
+      maxSize: 20,
+      diskSize: 100,
+      nodegroupName: 'nodegroup-x86'
+    });
+
+    // add ARM node group
     eksCluster.addNodegroupCapacity('nodegroup-arm', {
       instanceTypes: [new ec2.InstanceType('t4g.large')],
       minSize: 1,
