@@ -5,6 +5,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Ec2Action } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Cluster } from 'aws-cdk-lib/aws-ecs';
 import { DefaultCapacityType } from 'aws-cdk-lib/aws-eks';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class CdkTemplateEksStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -21,6 +22,14 @@ export class CdkTemplateEksStack extends Stack {
       }
     });
 
+    const awsAuth = new eks.AwsAuth(this, 'myAuth', {
+        cluster: eksCluster
+    });
+    // const user = iam.User.fromUserArn(this, 'userarn', 'arn:aws:iam::916049748016:user/tirtawid');
+    // awsAuth.addUserMapping(user, {groups: ['system:masters']});
+    const user2 = iam.User.fromUserArn(this, 'userarn2', 'arn:aws:iam::916049748016:user/rbac-user');
+    awsAuth.addUserMapping(user2, {groups: ['system:masters']});
+
     // add X86 node group
     eksCluster.addNodegroupCapacity('nodegroup-x86', {
       instanceTypes: [new ec2.InstanceType('t3.medium')],
@@ -29,15 +38,27 @@ export class CdkTemplateEksStack extends Stack {
       nodegroupName: 'nodegroup-x86'
     });
 
-    // add ARM node group
-    eksCluster.addNodegroupCapacity('nodegroup-arm', {
-      instanceTypes: [new ec2.InstanceType('t4g.large')],
-      minSize: 1,
-      maxSize: 4,
-      diskSize: 100,
-      amiType: eks.NodegroupAmiType.AL2_ARM_64,
-      nodegroupName: 'nodegroup-arm'
+    // add X86 node group
+    eksCluster.addNodegroupCapacity('nodegroup-x86-large', {
+        instanceTypes: [new ec2.InstanceType('t3.large')],
+        maxSize: 20,
+        diskSize: 100,
+        nodegroupName: 'nodegroup-x86-large',
+        tags: {
+            'nodetype': 'xlarge',
+            'applicationtype': 'critical'
+        }
     });
+    
+    // // add ARM node group
+    // eksCluster.addNodegroupCapacity('nodegroup-arm', {
+    //   instanceTypes: [new ec2.InstanceType('t4g.large')],
+    //   minSize: 1,
+    //   maxSize: 4,
+    //   diskSize: 100,
+    //   amiType: eks.NodegroupAmiType.AL2_ARM_64,
+    //   nodegroupName: 'nodegroup-arm'
+    // });
 
     eksCluster.addManifest('namespace', {
       "apiVersion": "v1",
