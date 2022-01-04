@@ -25,8 +25,8 @@ export class CdkTemplateEksStack extends Stack {
     const awsAuth = new eks.AwsAuth(this, 'myAuth', {
         cluster: eksCluster
     });
-    // const user = iam.User.fromUserArn(this, 'userarn', 'arn:aws:iam::916049748016:user/tirtawid');
-    // awsAuth.addUserMapping(user, {groups: ['system:masters']});
+    const user = iam.User.fromUserArn(this, 'userarn', 'arn:aws:iam::916049748016:user/tirtawid');
+    awsAuth.addUserMapping(user, {groups: ['system:masters']});
     const user2 = iam.User.fromUserArn(this, 'userarn2', 'arn:aws:iam::916049748016:user/rbac-user');
     awsAuth.addUserMapping(user2, {groups: ['system:masters']});
 
