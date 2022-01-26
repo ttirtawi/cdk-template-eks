@@ -4,7 +4,8 @@ import * as cdk from 'aws-cdk-lib';
 import { CdkTemplateEksStack } from '../lib/cdk-template-eks-stack';
 
 const app = new cdk.App();
-new CdkTemplateEksStack(app, 'CdkTemplateEksStack', {
+new CdkTemplateEksStack(app, 'eksStack', {
+  description: 'demo eks private cluster'
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
