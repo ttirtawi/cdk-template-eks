@@ -17,7 +17,7 @@ Below is the diagram depicting the entire  stack:
 
 1. First you need to have AWS CLI in your environment. You can refer to [this link](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) to install AWS Command Line Interface. 
 
-    - You also need to prepare the IAM user with Access/Secret key. The user must have privileges to provision CloudFormation and other related resources. For development you can temporarily assign `AdminsitratorPolicy`. 
+    - You also need to prepare the IAM user with Access/Secret key. The user must have privileges to provision CloudFormation and other related resources. For development you can temporarily assign `AdministratorAccess`. 
     - Configure AWS CLI using `aws configure`. 
 
 2. Second, you must install NodeJS for installing CDK.
@@ -201,3 +201,8 @@ Below is the diagram depicting the entire  stack:
 6. Validate the ingress controller load balancer URL from web browser. If everything works ok, you should see the output like this:
 
     ![](cdk-ingress-output.png)
+
+
+## Cleanup
+
+To clean up / delete the entire stack run `cdk destroy` command.
