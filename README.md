@@ -6,6 +6,7 @@ This stack will create EKS Cluster with private endpoint. In addition to that, i
 2. Public & private subnets across 2 Availability Zones, each using /18 segment.
 3. Amazon Linux Jumphost server in the public subnet. It will use t3.micro instance.
 4. Managed node group with initial 2 node using m5.xlarge.
+5. AWS Load Balancer controller (ref: [here](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)).
 
 This stack has been written in Typescript.
 
