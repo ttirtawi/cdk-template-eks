@@ -13,7 +13,7 @@ Below is the diagram depicting the entire  stack:
 
 ![](private-eks-cluster.png)
 
-## Prerequisite
+## Prerequisites
 
 1. First you need to have AWS CLI in your environment. You can refer to [this link](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) to install AWS Command Line Interface. 
 
