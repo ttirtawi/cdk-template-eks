@@ -70,7 +70,8 @@ Below is the diagram depicting the entire  stack:
 5. We now can deploy the stack using the following command:
 
     ```
-    cdk deploy --context keyPair=$KEYPAIR
+    export CLUSTER_NAME=<YOUR_CLUSTER_NAME>
+    cdk deploy --context keyPair=$KEYPAIR --context clusterName=$CLUSTER_NAME
     ```
 
 6. You will see the output below upon succesful deployment:
