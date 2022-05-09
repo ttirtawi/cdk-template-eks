@@ -83,14 +83,40 @@ export class CdkTemplateEksStackPublic extends Stack {
     eksCluster.awsAuth.addMastersRole(ec2role);
     eksCluster.connections.allowDefaultPortFrom(instance);
 
+    // // add X86 node group
+    // eksCluster.addNodegroupCapacity('nodegroup', {
+    //   instanceTypes: [new ec2.InstanceType('m5.xlarge')],
+    //   maxSize: 2,
+    //   minSize: 1,
+    //   diskSize: 50,
+    //   nodegroupName: `${clusterName}-nodegroup-1`,
+    //   labels: {
+    //     location: 'outpost'
+    //   }
+    // });
+    // // add X86 node group
+    // eksCluster.addNodegroupCapacity('nodegroup2', {
+    //   instanceTypes: [new ec2.InstanceType('t3.xlarge')],
+    //   maxSize: 2,
+    //   desiredSize: 1,
+    //   minSize: 1,
+    //   diskSize: 50,
+    //   nodegroupName: `${clusterName}-nodegroup-2`,
+    //   labels: {
+    //     location: 'region'
+    //   }
+    // });
     // add X86 node group
-    eksCluster.addNodegroupCapacity('nodegroup', {
-      instanceTypes: [new ec2.InstanceType('m5.xlarge')],
+    eksCluster.addNodegroupCapacity('nodegroup3', {
+      instanceTypes: [new ec2.InstanceType('t3.xlarge')],
+      maxSize: 4,
       desiredSize: 1,
       minSize: 1,
-      maxSize: 5,
       diskSize: 50,
-      nodegroupName: `${clusterName}-nodegroup-1`
+      nodegroupName: `${clusterName}-nodegroup-3`,
+      labels: {
+        location: 'region'
+      }
     });
 
     new CfnOutput(this, 'clusterName', {value: eksCluster.clusterName});
