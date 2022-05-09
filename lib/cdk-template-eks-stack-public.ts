@@ -5,17 +5,18 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { readFileSync } from 'fs';
 
-export class CdkTemplateEksStack extends Stack {
+export class CdkTemplateEksStackPublic extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
     // The code that defines your stack goes here
     const keyPair = this.node.tryGetContext('keyPair');
-    const clusterName = this.node.tryGetContext('clusterName');
+    const clusterName = this.node.tryGetContext('clusterName') ? this.node.tryGetContext('clusterName') : 'demo-eks-cluster-public';
 
     // Create VPC
     const vpc = new ec2.Vpc(this, 'vpc', {
       cidr: '10.99.0.0/16',
+      natGateways: 1,
       maxAzs: 2,
       subnetConfiguration: [
         {
@@ -36,6 +37,7 @@ export class CdkTemplateEksStack extends Stack {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
       ]
     });
 
@@ -67,14 +69,14 @@ export class CdkTemplateEksStack extends Stack {
     instance.connections.allowFromAnyIpv4(ec2.Port.icmpPing());
 
     // Create EKS Cluster
-    const eksCluster = new eks.Cluster(this, 'eksCluster', {
+    const eksCluster = new eks.Cluster(this, 'eksClusterPublic', {
       version: eks.KubernetesVersion.V1_21,
       clusterName,
       defaultCapacity: 0,
       albController: {
         version: eks.AlbControllerVersion.V2_3_0
       },
-      endpointAccess: eks.EndpointAccess.PRIVATE,
+      endpointAccess: eks.EndpointAccess.PUBLIC,
       vpc
     });
 
@@ -84,6 +86,8 @@ export class CdkTemplateEksStack extends Stack {
     // add X86 node group
     eksCluster.addNodegroupCapacity('nodegroup', {
       instanceTypes: [new ec2.InstanceType('m5.xlarge')],
+      desiredSize: 1,
+      minSize: 1,
       maxSize: 5,
       diskSize: 50,
       nodegroupName: `${clusterName}-nodegroup-1`
@@ -93,6 +97,7 @@ export class CdkTemplateEksStack extends Stack {
     new CfnOutput(this, 'vpcId', {value: vpc.vpcId});
     new CfnOutput(this, 'vpcCidr', {value: vpc.vpcCidrBlock});
     new CfnOutput(this, 'jumphost', {value: instance.instancePublicIp});
+    new CfnOutput(this, 'jumphost-instance-id', {value: instance.instanceId});
     new CfnOutput(this, 'ec2roleArn', {value: ec2role.roleArn});
 
   }

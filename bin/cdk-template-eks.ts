@@ -1,22 +1,15 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { CdkTemplateEksStack } from '../lib/cdk-template-eks-stack';
+import { CdkTemplateEksStackPublic } from '../lib/cdk-template-eks-stack-public';
+import { CdkTemplateEksStackPrivate } from '../lib/cdk-template-eks-stack-private';
 
 const app = new cdk.App();
-new CdkTemplateEksStack(app, 'eksStack', {
-  description: 'demo eks private cluster'
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
-
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
-
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
-
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+new CdkTemplateEksStackPrivate(app, 'eksStackPrivate', {
+  description: 'demo eks private cluster',
+  env: { account: '916049748016', region: 'ap-southeast-3' },
+});
+new CdkTemplateEksStackPublic(app, 'eksStackPublic', {
+  description: 'demo eks public cluster',
+  env: { account: '916049748016', region: 'ap-southeast-3' },
 });
